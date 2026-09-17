@@ -1,0 +1,7 @@
+# Installed copies only need src/, config/ and the docs.
+/tests          export-ignore
+/docker         export-ignore
+/bin            export-ignore
+/phpunit.xml    export-ignore
+/.gitignore     export-ignore
+/.gitattributes export-ignore

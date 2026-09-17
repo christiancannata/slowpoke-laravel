@@ -17,7 +17,11 @@ docker image inspect "$tag" >/dev/null 2>&1 || docker build -q --build-arg PHP="
 vendor="vendor/$(echo "php$php-$with" | tr -c 'A-Za-z0-9.\n' '-')"
 update="composer update --quiet --no-progress"
 [ -n "$with" ] && update="$update --with '$with'"
+# Inside the Slowpoke repository the shared fixtures in spec/ are mounted too; the standalone
+# package repository runs the same tests without them (the fixture test is then skipped).
+spec=""
+[ -d ../../spec ] && spec="-v $(cd ../../spec && pwd):/repo/spec"
 exec docker run --rm --cpus 1 \
-  -v "$(cd ../.. && pwd)":/repo -v slowpoke-composer-cache:/tmp/cache \
+  -v "$(pwd)":/repo/packages/laravel $spec -v slowpoke-composer-cache:/tmp/cache \
   -e COMPOSER_CACHE_DIR=/tmp/cache -e COMPOSER_NO_SECURITY_BLOCKING=1 -e COMPOSER_VENDOR_DIR="$vendor" -e UPDATE_FIXTURES="${UPDATE_FIXTURES:-}" \
   "$tag" sh -c "$update && php $vendor/bin/phpunit $*"

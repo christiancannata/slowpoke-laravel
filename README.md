@@ -1,6 +1,10 @@
 # slowpoke/laravel
 
-Tells Slowpoke which line of your Laravel app ran each query. For every HTTP request
+[Slowpoke](https://github.com/christiancannata/slowpoke-laravel) is a self-hosted tool that turns slow requests and
+slow queries into technical debt with a price, measured in seconds of waiting per day, and helps your team pay it
+back. This package is its Laravel integration: it needs the Slowpoke agent running on the same machine or network.
+
+It tells Slowpoke which line of your Laravel app ran each query. For every HTTP request
 and queued job it sends one trace to the Slowpoke agent on the same machine: the route, the status,
 the timing and every query with its `file:line`. Slowpoke turns that into N+1 detection and missions
 that point at your code, not at `vendor/`.
@@ -72,5 +76,10 @@ Everything runs in Docker, nothing to install on the host:
 UPDATE_FIXTURES=1 ./bin/test 8.3 --filter OtlpFixtures   # rewrite spec/laravel_otlp_fixtures.json
 ```
 
-`spec/laravel_otlp_fixtures.json` holds payloads exactly as this package sends them, with what the agent
-must read from each; the agent's Go test replays them (`internal/agent/laravel_otlp_fixtures_test.go`).
+In the Slowpoke repository, `spec/laravel_otlp_fixtures.json` holds payloads exactly as this package sends them, with
+what the agent must read from each; the agent's Go test replays them. In this standalone repository that contract test
+is skipped.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
