@@ -1,0 +1,101 @@
+package agent
+
+// Contract test between the slowpoke/laravel Composer package and the OTLP receiver.
+// Drafted with the package; copy to internal/agent/laravel_otlp_fixtures_test.go after the merge.
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/slowpoke-dev/slowpoke/internal/fingerprint"
+)
+
+func TestLaravelPackageFixtures(t *testing.T) {
+	raw, err := os.ReadFile("../../spec/laravel_otlp_fixtures.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []struct {
+		Name    string          `json:"name"`
+		Payload json.RawMessage `json:"payload"`
+		Expect  struct {
+			Route    string `json:"route"`
+			Status   int    `json:"status"`
+			Requests int    `json:"requests"`
+			Source   string `json:"source"`
+			Queries  []struct {
+				Statement string `json:"statement"`
+				N         int    `json:"n"`
+				Origin    string `json:"origin"`
+				NPlusOne  bool   `json:"n_plus_one"`
+			} `json:"queries"`
+		} `json:"expect"`
+	}
+	if err := json.Unmarshal(raw, &cases); err != nil {
+		t.Fatal(err)
+	}
+	if len(cases) == 0 {
+		t.Fatal("no fixtures")
+	}
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			a := NewAggregator()
+			r := newOTLPReceiver(a).withCodeRoot("/var/www/app/")
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/v1/traces", bytes.NewReader(c.Payload))
+			req.Header.Set("Content-Type", "application/json")
+			r.ServeHTTP(rec, req)
+			if rec.Code != 200 {
+				t.Fatalf("status %d %s", rec.Code, rec.Body.String())
+			}
+			r.flush(time.Now().Add(time.Hour))
+			d := a.Drain(time.Now().Add(time.Hour))
+
+			if len(d.App) != 1 {
+				t.Fatalf("app buckets %+v", d.App)
+			}
+			route, ok := d.App[0].Routes[c.Expect.Route]
+			if !ok || route.N != c.Expect.Requests {
+				t.Fatalf("routes %+v, want %q with %d requests", d.App[0].Routes, c.Expect.Route, c.Expect.Requests)
+			}
+			if want := 0; c.Expect.Status >= 500 {
+				want = 1
+				if route.E5 != want {
+					t.Fatalf("e5 %d", route.E5)
+				}
+			}
+			if len(d.App[0].Queries) != len(c.Expect.Queries) {
+				t.Fatalf("queries %+v", d.App[0].Queries)
+			}
+			for _, want := range c.Expect.Queries {
+				q, ok := d.App[0].Queries[fingerprint.Hash(fingerprint.Of(want.Statement))]
+				if !ok {
+					t.Fatalf("query %q missing in %+v", want.Statement, d.App[0].Queries)
+				}
+				if q.N != want.N || q.Origin != want.Origin || (q.NPlusOne > 0) != want.NPlusOne {
+					t.Fatalf("query %q = %+v, want %+v", want.Statement, q, want)
+				}
+			}
+
+			requests := 0
+			for _, h := range d.HTTP {
+				if h.Source != c.Expect.Source {
+					t.Fatalf("http source %q, want %q", h.Source, c.Expect.Source)
+				}
+				requests += h.N
+				if c.Expect.Requests > 0 {
+					if _, ok := h.Endpoints[c.Expect.Route]; !ok {
+						t.Fatalf("endpoints %+v, want %q", h.Endpoints, c.Expect.Route)
+					}
+				}
+			}
+			if requests != c.Expect.Requests {
+				t.Fatalf("http requests %d, want %d", requests, c.Expect.Requests)
+			}
+		})
+	}
+}
