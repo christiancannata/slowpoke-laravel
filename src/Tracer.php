@@ -226,7 +226,9 @@ class Tracer
     /** OTLP/JSON: 64-bit integers travel as strings. Microsecond precision is all PHP measures. */
     private static function nanos(float $seconds): string
     {
-        return ((int) round($seconds * 1e6)) . '000';
+        // floor(x + 0.5), not round(): PHP 8.4 changed round() for values like 1760000000409999.8,
+        // and the same trace must not depend on the PHP version.
+        return ((int) floor($seconds * 1e6 + 0.5)) . '000';
     }
 
     private static function kv(string $key, $value): array

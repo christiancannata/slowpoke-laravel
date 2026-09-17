@@ -4,12 +4,32 @@
 slow queries into technical debt with a price, measured in seconds of waiting per day, and helps your team pay it
 back. This package is its Laravel integration: it needs the Slowpoke agent running on the same machine or network.
 
+[![tests](https://github.com/christiancannata/slowpoke-laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/christiancannata/slowpoke-laravel/actions/workflows/tests.yml)
+[![Packagist](https://img.shields.io/packagist/v/slowpoke/laravel)](https://packagist.org/packages/slowpoke/laravel)
+[![PHP](https://img.shields.io/packagist/dependency-v/slowpoke/laravel/php)](https://packagist.org/packages/slowpoke/laravel)
+
 It tells Slowpoke which line of your Laravel app ran each query. For every HTTP request
 and queued job it sends one trace to the Slowpoke agent on the same machine: the route, the status,
 the timing and every query with its `file:line`. Slowpoke turns that into N+1 detection and missions
 that point at your code, not at `vendor/`.
 
-No OpenTelemetry extension or SDK needed. PHP 7.4+, Laravel 5.8 to 13.
+No OpenTelemetry extension or SDK needed, no PHP extension beyond the defaults.
+
+## Supported versions
+
+Every combination below runs the full test suite on each push and every week:
+
+| PHP | Laravel |
+|---|---|
+| 7.4 | 5.8, 6, 7, 8 |
+| 8.0 | 9 |
+| 8.1 | 10 |
+| 8.2 | 11 |
+| 8.3 | 12 |
+| 8.4, 8.5 | 13 |
+
+Other combinations that Laravel itself allows (for example PHP 8.3 with Laravel 10) work too: the package only uses
+PHP 7.4 syntax and APIs present since Laravel 5.8.
 
 ## Install
 

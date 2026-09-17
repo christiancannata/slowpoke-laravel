@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 - 2026-09-17
+
+- Span timestamps are identical on every PHP version: PHP 8.4 changed `round()`, which moved some timestamps by a
+  microsecond. Found by the new test matrix.
+- Tests run on GitHub Actions for PHP 7.4 to 8.5 and Laravel 5.8 to 13, on every push and weekly.
+
 ## 0.1.0 - 2026-09-17
 
 First release.
