@@ -110,6 +110,7 @@ class HttpSender implements Sender
         }
     }
 
+    /** @param resource $socket */
     private function wait($socket, float $deadline, bool $write): bool
     {
         $left = $deadline - microtime(true);

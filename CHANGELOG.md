@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2 - 2026-09-17
+
+- Supply chain and trust: OpenSSF Scorecard, PHPStan level 6 and `composer audit` in CI, CodeQL on the workflows,
+  GitHub Actions pinned by commit, Dependabot, SECURITY.md with what the package does and never does, signed build
+  provenance (Sigstore) attached to every release.
+- No change in behavior: type documentation only.
+
 ## 0.1.1 - 2026-09-17
 
 - Span timestamps are identical on every PHP version: PHP 8.4 changed `round()`, which moved some timestamps by a

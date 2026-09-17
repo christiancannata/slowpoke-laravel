@@ -18,9 +18,10 @@ class SlowpokeServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/slowpoke.php', 'slowpoke');
     }
 
+    /** @return void */
     public function boot()
     {
-        if ($this->app->runningInConsole() && method_exists($this, 'publishes')) {
+        if ($this->app->runningInConsole()) {
             $this->publishes([__DIR__ . '/../config/slowpoke.php' => $this->app->configPath('slowpoke.php')], 'slowpoke-config');
         }
         try {

@@ -31,7 +31,7 @@ class Tracer
     private $maxQueries;
     /** @var int */
     private $maxSqlLength;
-    /** @var array|null */
+    /** @var array<string, mixed>|null the trace being recorded */
     private $trace;
 
     /**
@@ -158,6 +158,7 @@ class Tracer
         return $this->trace !== null && $this->trace['kind'] === $kind && $this->trace['end'] === null;
     }
 
+    /** @return array<string, mixed> */
     private function newTrace(int $kind, string $name, float $start): array
     {
         return [
@@ -167,6 +168,7 @@ class Tracer
         ];
     }
 
+    /** @param array<string, mixed> $t */
     private function encode(array $t): string
     {
         $root = [
@@ -231,6 +233,10 @@ class Tracer
         return ((int) floor($seconds * 1e6 + 0.5)) . '000';
     }
 
+    /**
+     * @param string|int|float|bool $value
+     * @return array{key: string, value: array<string, mixed>}
+     */
     private static function kv(string $key, $value): array
     {
         return ['key' => $key, 'value' => is_int($value) ? ['intValue' => (string) $value] : ['stringValue' => (string) $value]];

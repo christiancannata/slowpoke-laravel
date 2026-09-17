@@ -7,6 +7,8 @@ back. This package is its Laravel integration: it needs the Slowpoke agent runni
 [![tests](https://github.com/christiancannata/slowpoke-laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/christiancannata/slowpoke-laravel/actions/workflows/tests.yml)
 [![Packagist](https://img.shields.io/packagist/v/slowpoke/laravel)](https://packagist.org/packages/slowpoke/laravel)
 [![PHP](https://img.shields.io/packagist/dependency-v/slowpoke/laravel/php)](https://packagist.org/packages/slowpoke/laravel)
+[![static analysis](https://github.com/christiancannata/slowpoke-laravel/actions/workflows/static.yml/badge.svg)](https://github.com/christiancannata/slowpoke-laravel/actions/workflows/static.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/christiancannata/slowpoke-laravel/badge)](https://scorecard.dev/viewer/?uri=github.com/christiancannata/slowpoke-laravel)
 
 It tells Slowpoke which line of your Laravel app ran each query. For every HTTP request
 and queued job it sends one trace to the Slowpoke agent on the same machine: the route, the status,
@@ -99,6 +101,16 @@ UPDATE_FIXTURES=1 ./bin/test 8.3 --filter OtlpFixtures   # rewrite spec/laravel_
 In the Slowpoke repository, `spec/laravel_otlp_fixtures.json` holds payloads exactly as this package sends them, with
 what the agent must read from each; the agent's Go test replays them. In this standalone repository that contract test
 is skipped.
+
+## Security
+
+The package is small (about 700 lines), reads no request data, sends nothing outside your machine or private network,
+and cannot break or slow a request. What it does and never does, how to report a vulnerability and how to verify a
+release are in [SECURITY.md](SECURITY.md). Every release archive carries a signed build provenance:
+
+```sh
+gh attestation verify slowpoke-laravel-v0.1.2.zip --repo christiancannata/slowpoke-laravel
+```
 
 ## License
 

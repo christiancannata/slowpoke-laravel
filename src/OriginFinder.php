@@ -17,6 +17,7 @@ class OriginFinder
     /** @var array<string, string|null> compiled Blade file => template, bounded */
     private $views = [];
 
+    /** @param string[] $skipDirs */
     public function __construct(string $codeRoot, int $limit, array $skipDirs)
     {
         $this->root = rtrim($codeRoot, '/') . '/';
@@ -31,7 +32,10 @@ class OriginFinder
         return $this->fromFrames(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $this->limit));
     }
 
-    /** @return array{0: string, 1: int|null}|null */
+    /**
+     * @param array<int, array<string, mixed>> $frames
+     * @return array{0: string, 1: int|null}|null
+     */
     public function fromFrames(array $frames): ?array
     {
         foreach ($frames as $frame) {

@@ -19,6 +19,10 @@ class TraceRequest
         $this->tracer = $tracer;
     }
 
+    /**
+     * @param \Illuminate\Http\Request|mixed $request
+     * @return mixed
+     */
     public function handle($request, Closure $next)
     {
         $started = $request->server('REQUEST_TIME_FLOAT');
