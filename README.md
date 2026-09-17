@@ -73,4 +73,4 @@ UPDATE_FIXTURES=1 ./bin/test 8.3 --filter OtlpFixtures   # rewrite spec/laravel_
 ```
 
 `spec/laravel_otlp_fixtures.json` holds payloads exactly as this package sends them, with what the agent
-must read from each; the agent's Go test replays them (draft in `contract/`).
+must read from each; the agent's Go test replays them (`internal/agent/laravel_otlp_fixtures_test.go`).
