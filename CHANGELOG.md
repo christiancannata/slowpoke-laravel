@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.3 - 2026-09-18
+
+- Scheduled commands are traced like queued jobs: the command as written in the scheduler
+  (`invoices:close`), how long it took, whether it failed, and the `file:line` of its queries.
+  `SLOWPOKE_SCHEDULE=false` turns it off. The events are listened to by name, so no Laravel
+  version is required to have the class.
+- A trace says what it is (`slowpoke.kind`), so the agent files a job or a command under Jobs
+  instead of among the endpoints. Before this, a queued job looked like a route named after its
+  class, and nothing ever reached the panel's Jobs page.
+- `bin/bench` measures what the package costs while a request is running, and the README carries
+  the result: 0.09 to 0.10 ms on a request with fifty queries, about 2 µs each.
+- README rewritten around what you get, what it costs, what is sent and what never is.
+
 ## 0.1.2 - 2026-09-17
 
 - Supply chain and trust: OpenSSF Scorecard, PHPStan level 6 and `composer audit` in CI, CodeQL on the workflows,

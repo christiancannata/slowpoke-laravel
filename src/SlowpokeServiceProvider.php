@@ -66,6 +66,9 @@ class SlowpokeServiceProvider extends ServiceProvider
         if (filter_var($config->get('slowpoke.jobs', true), FILTER_VALIDATE_BOOLEAN)) {
             $this->traceJobs($tracer);
         }
+        if (filter_var($config->get('slowpoke.schedule', true), FILTER_VALIDATE_BOOLEAN)) {
+            $this->traceSchedule($tracer);
+        }
     }
 
     private function traceRequests(Tracer $tracer): void
@@ -87,6 +90,45 @@ class SlowpokeServiceProvider extends ServiceProvider
         $this->app->terminating(function () use ($tracer) {
             $tracer->flush();
         });
+    }
+
+    /**
+     * Scheduled commands, by event name: the classes exist from Laravel 5.8 (finished) and later
+     * (failed), and listening by name is harmless where one of them does not exist yet.
+     */
+    private function traceSchedule(Tracer $tracer): void
+    {
+        $events = $this->app['events'];
+        $events->listen('Illuminate\\Console\\Events\\ScheduledTaskStarting', function ($event) use ($tracer) {
+            $tracer->startCommand($this->commandName($event));
+        });
+        $finish = function ($failed) use ($tracer) {
+            return function () use ($tracer, $failed) {
+                $tracer->finishCommand($failed);
+                $tracer->flush(); // nothing is waiting for a response here
+            };
+        };
+        $events->listen('Illuminate\\Console\\Events\\ScheduledTaskFinished', $finish(false));
+        $events->listen('Illuminate\\Console\\Events\\ScheduledTaskFailed', $finish(true));
+    }
+
+    /** The name a person would recognise: "invoices:close", not the php binary that ran it. */
+    private function commandName($event): string
+    {
+        $task = isset($event->task) ? $event->task : null;
+        if ($task === null) {
+            return 'scheduled task';
+        }
+        $name = '';
+        if (isset($task->description) && is_string($task->description) && $task->description !== '') {
+            $name = $task->description;
+        } elseif (isset($task->command) && is_string($task->command)) {
+            // "'/usr/bin/php8.3' 'artisan' invoices:close > /dev/null"
+            $name = (string) preg_replace(['/^.*?artisan.\s*/', '/\s*(>|2>).*$/'], '', $task->command);
+        }
+        $name = trim($name);
+
+        return $name === '' ? 'scheduled task' : $name;
     }
 
     private function traceJobs(Tracer $tracer): void

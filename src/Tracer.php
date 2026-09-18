@@ -94,10 +94,33 @@ class Tracer
         }
         try {
             $this->trace = $this->newTrace(self::CONSUMER, $name, ($this->clock)());
+            $this->trace['attributes'][] = self::kv('slowpoke.kind', 'job');
             $this->trace['attributes'][] = self::kv('messaging.destination.name', $queue);
         } catch (\Throwable $e) {
             $this->trace = null;
         }
+    }
+
+    /**
+     * A scheduled command: nobody is waiting for it, which is exactly why nobody notices when it
+     * gets slower. Same trace as a job, and the queries inside it keep their file:line.
+     */
+    public function startCommand(string $name): void
+    {
+        if ($this->trace !== null && $this->trace['end'] === null) {
+            return; // a command run inside something else belongs to it
+        }
+        try {
+            $this->trace = $this->newTrace(self::CONSUMER, $name, ($this->clock)());
+            $this->trace['attributes'][] = self::kv('slowpoke.kind', 'command');
+        } catch (\Throwable $e) {
+            $this->trace = null;
+        }
+    }
+
+    public function finishCommand(bool $failed): void
+    {
+        $this->finishJob($failed);
     }
 
     public function finishJob(bool $failed): void

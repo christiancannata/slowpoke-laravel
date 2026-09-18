@@ -93,7 +93,9 @@ class OtlpFixturesTest extends TestCase
             'name' => 'queued job: queries without an HTTP request',
             'payload' => json_decode($sender->payloads[0], true),
             'expect' => [
-                'route' => '(background)', 'status' => 0, 'requests' => 0, 'source' => '',
+                // A job is a run on the Jobs page, never an endpoint, and its queries hang from it.
+                'route' => 'job App\\Jobs\\SendInvoices', 'status' => 0, 'requests' => 1, 'source' => '',
+                'job' => ['kind' => 'job', 'name' => 'App\\Jobs\\SendInvoices', 'runs' => 1, 'failed' => 0],
                 'queries' => [
                     ['statement' => 'select * from `invoices` where `sent_at` is null', 'n' => 1, 'origin' => 'app/Jobs/SendInvoices.php:31', 'n_plus_one' => false],
                     ['statement' => 'delete from `cache` where `key` in (?)', 'n' => 1, 'origin' => '', 'n_plus_one' => false],

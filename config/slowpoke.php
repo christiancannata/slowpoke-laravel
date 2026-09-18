@@ -16,6 +16,9 @@ return [
     // Trace queued jobs as well as HTTP requests.
     'jobs' => env('SLOWPOKE_JOBS', true),
 
+    // Trace scheduled commands (the ones in app/Console/Kernel.php), with their queries.
+    'schedule' => env('SLOWPOKE_SCHEDULE', true),
+
     // Queries kept per request or job; the rest are counted, not described.
     'max_queries' => (int) env('SLOWPOKE_MAX_QUERIES', 500),
 
