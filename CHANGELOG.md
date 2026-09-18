@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 - 2026-09-18
+
+- Type documentation only: the scheduled task event had no declared type, which PHPStan level 6
+  refuses. No change in behaviour.
+
 ## 0.1.3 - 2026-09-18
 
 - Scheduled commands are traced like queued jobs: the command as written in the scheduler

@@ -112,7 +112,11 @@ class SlowpokeServiceProvider extends ServiceProvider
         $events->listen('Illuminate\\Console\\Events\\ScheduledTaskFailed', $finish(true));
     }
 
-    /** The name a person would recognise: "invoices:close", not the php binary that ran it. */
+    /**
+     * The name a person would recognise: "invoices:close", not the php binary that ran it.
+     *
+     * @param object $event one of Laravel's ScheduledTask events, whatever version it is
+     */
     private function commandName($event): string
     {
         $task = isset($event->task) ? $event->task : null;
