@@ -71,10 +71,10 @@ class RequestTraceTest extends TestCase
 
     public function testUnmatchedRoute(): void
     {
-        $this->get('/nope?token=abc')->assertStatus(404);
+        $this->get('/nope?token=zzz-secret-zzz')->assertStatus(404);
         [$root] = $this->sender->onlyTrace();
         $this->assertSame('/nope', FakeSender::attr($root, 'url.path'));
-        $this->assertStringNotContainsString('abc', $this->sender->payloads[0]);
+        $this->assertStringNotContainsString('zzz-secret-zzz', $this->sender->payloads[0]);
     }
 
     public function testBindingValuesNeverLeaveTheApp(): void
