@@ -9,6 +9,8 @@
   binding or the SQL Server LIMIT advisory against it.
 - Weight is a test now: no runtime dependency of its own, an installed copy that is source and
   documentation only, and a wall on the size of `src/`.
+- SECURITY.md says why two advisories stay open on the repository: they are about Laravel 5.8,
+  which was never patched and is supported here on purpose, and not about this code.
 
 ## 0.1.4 - 2026-09-18
 

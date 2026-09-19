@@ -23,6 +23,21 @@ It runs inside your application, so it is kept small and easy to read (about 700
 - It does not write files, run shell commands, load remote code or phone home. Its only runtime dependencies are
   `illuminate/*` packages your application already has.
 
+## The two alerts you will see on this repository
+
+GitHub reports two advisories against `illuminate/database`, and they will stay there on purpose.
+Both say the same thing: *any version below 6.20.26*. Laravel 5.8 went out of support in 2019 and
+those holes were never patched there, so allowing 5.8 at all is enough to raise them.
+
+This package supports Laravel 5.8 anyway, and neither advisory is in its code. An application still
+on 5.8 already carries them, whatever it installs next; refusing to run there would take away the
+one thing that can show what is slow in it, and change nothing about its security. The floors are at
+the patched release of every branch that has one — 6.20.26, 7.30.6, 8.75 — so the only way to end up
+with an affected version is to already be on one.
+
+If your own policy says otherwise, require the package with a floor of your choice:
+`composer require slowpoke/laravel illuminate/database:^8.75`.
+
 ## How releases can be verified
 
 - Every push runs the test suite on PHP 7.4 to 8.5 and Laravel 5.8 to 13, PHPStan and `composer audit`.

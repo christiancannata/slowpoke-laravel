@@ -124,7 +124,9 @@ Everything has a default that works. Nothing has to be set.
 
 Every combination in that table runs the full suite on each push and every week. Other combinations Laravel
 itself allows (PHP 8.3 with Laravel 10, say) work too: the package is written in PHP 7.4 syntax and uses
-only APIs present since Laravel 5.8. **A ten-year-old application gets the same answers as a new one.**
+only APIs present since Laravel 5.8. **A ten-year-old application gets the same answers as a new one** —
+which is the point, because those are the ones nobody can see inside. Laravel 5.8 has advisories of its own
+that were never patched there, and [SECURITY.md](SECURITY.md) says what that means for this package.
 
 ## Quality
 
