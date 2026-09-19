@@ -5,6 +5,8 @@
 <p align="center">
 <a href="https://github.com/christiancannata/slowpoke-laravel/actions/workflows/tests.yml"><img alt="tests" src="https://github.com/christiancannata/slowpoke-laravel/actions/workflows/tests.yml/badge.svg"></a>
 <a href="https://github.com/christiancannata/slowpoke-laravel/actions/workflows/static.yml"><img alt="static analysis" src="https://github.com/christiancannata/slowpoke-laravel/actions/workflows/static.yml/badge.svg"></a>
+<a href="https://github.com/christiancannata/slowpoke-laravel/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/christiancannata/slowpoke-laravel/actions/workflows/codeql.yml/badge.svg"></a>
+<a href="#performance"><img alt="runtime dependencies: 0" src="https://img.shields.io/badge/runtime%20dependencies-0-brightgreen"></a>
 <a href="https://packagist.org/packages/slowpoke/laravel"><img alt="Packagist" src="https://img.shields.io/packagist/v/slowpoke/laravel"></a>
 <a href="https://packagist.org/packages/slowpoke/laravel"><img alt="PHP" src="https://img.shields.io/packagist/dependency-v/slowpoke/laravel/php"></a>
 <a href="https://scorecard.dev/viewer/?uri=github.com/christiancannata/slowpoke-laravel"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/christiancannata/slowpoke-laravel/badge"></a>
