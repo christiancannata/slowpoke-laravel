@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.5 - 2026-09-19
+
+- The versions this package allows no longer include ones with a known hole: the floors move to the
+  patched releases of each branch (`illuminate/*` 5.8.35, 6.20.26, 7.30.6, 8.75) and PHPUnit starts
+  at 8.5.52. Nothing changes in the code, and every combination of the matrix still passes; what
+  changes is that `composer require slowpoke/laravel` can no longer resolve to a Laravel with the
+  binding or the SQL Server LIMIT advisory against it.
+- Weight is a test now: no runtime dependency of its own, an installed copy that is source and
+  documentation only, and a wall on the size of `src/`.
+
 ## 0.1.4 - 2026-09-18
 
 - Type documentation only: the scheduled task event had no declared type, which PHPStan level 6
