@@ -34,13 +34,15 @@ class OtlpFixturesTest extends TestCase
             $tracer->recordQuery('select * from `customers` where `customers`.`id` = ? limit 1', 0.9, 'mysql');
         }
         $clock->now += 0.01;
-        $tracer->finishRequest('orders', '/orders', 200);
+        // Written as a browser sends it: the host is normalised, so a web server logging
+        // "shop.example.com" on another machine is recognised as the same requests.
+        $tracer->finishRequest('orders', '/orders', 200, 'Shop.Example.com:8443');
         $tracer->flush();
         $out[] = [
             'name' => 'request with an N+1 in a Blade view',
             'payload' => json_decode($sender->payloads[0], true),
             'expect' => [
-                'route' => 'GET /orders', 'status' => 200, 'requests' => 1, 'source' => 'otlp:shop',
+                'route' => 'GET /orders', 'status' => 200, 'requests' => 1, 'source' => 'otlp:shop', 'site' => 'shop.example.com',
                 'queries' => [
                     ['statement' => 'select * from `orders` where `status` = ? order by `created_at` desc limit 25', 'n' => 1, 'origin' => 'app/Http/Controllers/OrderController.php:18', 'n_plus_one' => false],
                     ['statement' => 'select * from `customers` where `customers`.`id` = ? limit 1', 'n' => 6, 'origin' => 'resources/views/orders/index.blade.php', 'n_plus_one' => true],

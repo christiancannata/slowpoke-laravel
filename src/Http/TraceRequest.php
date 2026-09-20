@@ -34,7 +34,7 @@ class TraceRequest
             $route = $request->route();
             $uri = is_object($route) && method_exists($route, 'uri') ? $route->uri() : null;
             $status = is_object($response) && method_exists($response, 'getStatusCode') ? (int) $response->getStatusCode() : 200;
-            $this->tracer->finishRequest($uri, $request->getPathInfo(), $status);
+            $this->tracer->finishRequest($uri, $request->getPathInfo(), $status, $request->getHost());
         } catch (\Throwable $e) {
             $this->tracer->reset();
         }

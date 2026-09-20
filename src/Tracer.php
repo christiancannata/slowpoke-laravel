@@ -9,7 +9,7 @@ namespace Slowpoke\Laravel;
  */
 class Tracer
 {
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.1.6';
 
     private const SERVER = 2;
     private const CLIENT = 3;
@@ -64,7 +64,7 @@ class Tracer
         }
     }
 
-    public function finishRequest(?string $route, string $path, int $status): void
+    public function finishRequest(?string $route, string $path, int $status, ?string $host = null): void
     {
         if (!$this->running(self::SERVER)) {
             return;
@@ -81,6 +81,12 @@ class Tracer
                 $t['attributes'][] = self::kv('url.path', '/' . ltrim((string) strtok($path, '?'), '/'));
             }
             $t['attributes'][] = self::kv('http.response.status_code', $status);
+            // The host this request was answered for. With a web server in front on another
+            // machine, it is the only thing that says its access log and this trace are the
+            // same requests, so that nobody counts them twice.
+            if ($host !== null && $host !== '') {
+                $t['attributes'][] = self::kv('server.address', strtolower($host));
+            }
             $t['error'] = $status >= 500;
         } catch (\Throwable $e) {
             $this->trace = null;
