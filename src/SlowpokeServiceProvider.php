@@ -183,7 +183,8 @@ class SlowpokeServiceProvider extends ServiceProvider
             if ($event->connectionName === 'sync') {
                 return; // runs inside whatever dispatched it
             }
-            $tracer->startJob((string) $event->job->resolveName(), (string) $event->job->getQueue());
+            $payload = method_exists($event->job, 'payload') ? $event->job->payload() : null;
+            $tracer->startJob(JobName::of((string) $event->job->resolveName(), $payload), (string) $event->job->getQueue());
         });
         $finish = function ($failed) use ($tracer) {
             return function ($event) use ($tracer, $failed) {

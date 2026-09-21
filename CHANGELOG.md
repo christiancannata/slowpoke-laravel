@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.8 - 2026-09-21
+
+- A command queued with `Artisan::queue('google-sheet:update', [...])` is named after the command on
+  the Jobs page, instead of `Illuminate\Foundation\Console\QueuedCommand`, the wrapper Laravel runs it
+  in. Before Laravel 10 the command is read from the queued job without unserializing it; from
+  Laravel 10 the command string is cut to its name. A command queued by class keeps the class name.
+  Arguments and options never reach the name: they may carry personal data. Mailables, notifications,
+  queued listeners and broadcasts already carried their own class and are unchanged.
+
 ## 0.1.7 - 2026-09-21
 
 - Outbound HTTP calls made with the `Http` facade during a request, a job or a scheduled command are

@@ -10,7 +10,7 @@ namespace Slowpoke\Laravel;
  */
 class Tracer
 {
-    public const VERSION = '0.1.7';
+    public const VERSION = '0.1.8';
 
     private const SERVER = 2;
     private const CLIENT = 3;

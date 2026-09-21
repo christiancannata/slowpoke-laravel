@@ -3,6 +3,7 @@
 namespace Slowpoke\Laravel\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Slowpoke\Laravel\JobName;
 use Slowpoke\Laravel\OriginFinder;
 use Slowpoke\Laravel\Tests\Fixtures\FakeSender;
 use Slowpoke\Laravel\Tracer;
@@ -101,6 +102,30 @@ class OtlpFixturesTest extends TestCase
                 'queries' => [
                     ['statement' => 'select * from `invoices` where `sent_at` is null', 'n' => 1, 'origin' => 'app/Jobs/SendInvoices.php:31', 'n_plus_one' => false],
                     ['statement' => 'delete from `cache` where `key` in (?)', 'n' => 1, 'origin' => '', 'n_plus_one' => false],
+                ],
+            ],
+        ];
+
+        // Artisan::queue('google-sheet:update', [...]) as a Laravel 9 worker pulls it: the wrapper in
+        // displayName, the command only inside the serialized job, arguments that stay out.
+        [$tracer, $sender, $clock, $origin] = $this->tracer();
+        $wrapper = 'Illuminate\\Foundation\\Console\\QueuedCommand';
+        $serialized = 'O:43:"' . $wrapper . '":1:{s:7:"' . "\0*\0" . 'data";a:2:{i:0;s:19:"google-sheet:update";i:1;a:1:{s:7:"--owner";s:17:"mario@example.com";}}}';
+        $tracer->startJob(JobName::of($wrapper, ['displayName' => $wrapper, 'data' => ['commandName' => $wrapper, 'command' => $serialized]]), 'default');
+        $origin->at = ['app/Console/Commands/UpdateGoogleSheet.php', 52];
+        $clock->now += 1.2;
+        $tracer->recordQuery('select * from `orders` where `created_at` >= ?', 900.0, 'mysql');
+        $clock->now += 0.3;
+        $tracer->finishJob(false);
+        $tracer->flush();
+        $out[] = [
+            'name' => 'queued artisan command: named after the command, not the QueuedCommand wrapper',
+            'payload' => json_decode($sender->payloads[0], true),
+            'expect' => [
+                'route' => 'job google-sheet:update', 'status' => 0, 'requests' => 1, 'source' => '',
+                'job' => ['kind' => 'job', 'name' => 'google-sheet:update', 'runs' => 1, 'failed' => 0],
+                'queries' => [
+                    ['statement' => 'select * from `orders` where `created_at` >= ?', 'n' => 1, 'origin' => 'app/Console/Commands/UpdateGoogleSheet.php:52', 'n_plus_one' => false],
                 ],
             ],
         ];
