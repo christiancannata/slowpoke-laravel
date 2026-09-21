@@ -105,6 +105,39 @@ class OtlpFixturesTest extends TestCase
             ],
         ];
 
+        [$tracer, $sender, $clock, $origin] = $this->tracer();
+        $tracer->startRequest('POST', $clock->now);
+        $clock->now += 0.005;
+        $origin->at = ['app/Http/Controllers/CheckoutController.php', 27];
+        $tracer->recordQuery('select * from `carts` where `id` = ? limit 1', 2.0, 'mysql');
+        $clock->now += 0.001;
+        $origin->at = ['app/Services/Stripe.php', 88];
+        $tracer->startHttpCall(1, 'POST', 'https://api.stripe.com/v1/payment_intents?expand=customer');
+        $clock->now += 0.42;
+        $tracer->finishHttpCall(1, 200, 'POST', 'https://api.stripe.com/v1/payment_intents?expand=customer');
+        $clock->now += 0.002;
+        $origin->at = null; // a call made from framework code only
+        $tracer->startHttpCall(2, 'GET', 'http://Partner.Example.com:8080/stock?sku=A1');
+        $clock->now += 1.5;
+        $tracer->finishHttpCall(2, null, 'GET', 'http://Partner.Example.com:8080/stock?sku=A1');
+        $clock->now += 0.003;
+        $tracer->finishRequest('checkout', '/checkout', 200);
+        $tracer->flush();
+        $out[] = [
+            'name' => 'request with outbound calls: one to Stripe, one failed to a partner',
+            'payload' => json_decode($sender->payloads[0], true),
+            'expect' => [
+                'route' => 'POST /checkout', 'status' => 200, 'requests' => 1, 'source' => 'otlp:shop',
+                'queries' => [
+                    ['statement' => 'select * from `carts` where `id` = ? limit 1', 'n' => 1, 'origin' => 'app/Http/Controllers/CheckoutController.php:27', 'n_plus_one' => false],
+                ],
+                'outbound' => [
+                    ['host' => 'api.stripe.com', 'n' => 1, 'errors' => 0, 'origin' => 'app/Services/Stripe.php:88'],
+                    ['host' => 'partner.example.com:8080', 'n' => 1, 'errors' => 1, 'origin' => ''],
+                ],
+            ],
+        ];
+
         return $out;
     }
 

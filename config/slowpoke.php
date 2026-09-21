@@ -22,6 +22,13 @@ return [
     // Queries kept per request or job; the rest are counted, not described.
     'max_queries' => (int) env('SLOWPOKE_MAX_QUERIES', 500),
 
+    // Record outbound calls made with the Http facade: method, remote host, status, duration and
+    // the line that made them. Never the URL path, the query string, headers or bodies.
+    'http_client' => env('SLOWPOKE_HTTP_CLIENT', true),
+
+    // Outbound calls kept per request or job; the rest are counted, not described.
+    'max_http_calls' => (int) env('SLOWPOKE_MAX_HTTP_CALLS', 200),
+
     // Longer statements are cut (huge IN lists, bulk inserts).
     'max_sql_length' => (int) env('SLOWPOKE_MAX_SQL_LENGTH', 10000),
 

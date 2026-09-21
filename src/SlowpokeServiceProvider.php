@@ -52,6 +52,8 @@ class SlowpokeServiceProvider extends ServiceProvider
                     'service' => (string) ($config->get('slowpoke.service') ?: $config->get('app.name') ?: 'laravel'),
                     'max_queries' => (int) $config->get('slowpoke.max_queries', 500),
                     'max_sql_length' => (int) $config->get('slowpoke.max_sql_length', 10000),
+                    'max_http_calls' => (int) $config->get('slowpoke.max_http_calls', 200),
+                    'agent_endpoint' => (string) $config->get('slowpoke.endpoint'),
                 ]
             );
         });
@@ -63,6 +65,9 @@ class SlowpokeServiceProvider extends ServiceProvider
         });
 
         $this->traceRequests($tracer);
+        if (filter_var($config->get('slowpoke.http_client', true), FILTER_VALIDATE_BOOLEAN)) {
+            $this->traceHttpClient($tracer);
+        }
         if (filter_var($config->get('slowpoke.jobs', true), FILTER_VALIDATE_BOOLEAN)) {
             $this->traceJobs($tracer);
         }
@@ -133,6 +138,42 @@ class SlowpokeServiceProvider extends ServiceProvider
         $name = trim($name);
 
         return $name === '' ? 'scheduled task' : $name;
+    }
+
+    /**
+     * Outbound calls made with Laravel's HTTP client (the Http facade), by event name: the events
+     * exist from Laravel 8, and listening to a class that does not exist is harmless. Calls made
+     * with Guzzle or cURL directly send no event and are not seen. The package's own sender uses
+     * a raw socket, never this client, and the tracer skips the agent's address anyway.
+     */
+    private function traceHttpClient(Tracer $tracer): void
+    {
+        $events = $this->app['events'];
+        $describe = function ($request): array {
+            // Illuminate\Http\Client\Request: method() and url() exist in every version with events.
+            return [(string) $request->method(), (string) $request->url()];
+        };
+        $events->listen('Illuminate\\Http\\Client\\Events\\RequestSending', function ($event) use ($tracer, $describe) {
+            try {
+                [$method, $url] = $describe($event->request);
+                $tracer->startHttpCall(spl_object_id($event->request), $method, $url);
+            } catch (\Throwable $e) {
+            }
+        });
+        $events->listen('Illuminate\\Http\\Client\\Events\\ResponseReceived', function ($event) use ($tracer, $describe) {
+            try {
+                [$method, $url] = $describe($event->request);
+                $tracer->finishHttpCall(spl_object_id($event->request), (int) $event->response->status(), $method, $url);
+            } catch (\Throwable $e) {
+            }
+        });
+        $events->listen('Illuminate\\Http\\Client\\Events\\ConnectionFailed', function ($event) use ($tracer, $describe) {
+            try {
+                [$method, $url] = $describe($event->request);
+                $tracer->finishHttpCall(spl_object_id($event->request), null, $method, $url);
+            } catch (\Throwable $e) {
+            }
+        });
     }
 
     private function traceJobs(Tracer $tracer): void

@@ -72,10 +72,10 @@ that to be measured. Everything else happens **after** your visitor already has 
 | **Sent after the response** | from a terminating callback: under php-fpm the response has already reached the client (`fastcgi_finish_request`), so the send is on nobody's clock. Queue workers send right after each job |
 | **Never waits** | a hard time budget on the socket (`SLOWPOKE_TIMEOUT`, 0.1 s) and every error swallowed: an agent that is missing, slow or broken costs one trace, never a request |
 | **Never copies your data** | `debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)` with a bounded depth: no argument, ever |
-| **Bounded** | 500 queries described per request at most, the rest counted; statements over 10 000 characters cut |
+| **Bounded** | 500 queries and 200 outbound calls described per request at most, the rest counted; statements over 10 000 characters cut |
 | **Quiet when idle** | queries outside a request, a job or a scheduled command — a worker polling its queue, an artisan command you ran by hand — are not recorded at all |
 
-659 lines of PHP. Three Laravel contracts. No runtime dependency of its own.
+834 lines of PHP. Three Laravel contracts. No runtime dependency of its own.
 
 ## What is sent, and what never is
 
@@ -88,7 +88,12 @@ Sent, as OTLP/JSON, only to the agent on your machine or private network:
   took, whether it failed;
 - **per query** — the SQL **with placeholders**, exactly as Laravel hands it to PDO, the database engine,
   the real duration, and the first line of your own code on the stack, outside `vendor/` and outside this
-  package. For a query issued from a Blade view: the template, not the compiled file.
+  package. For a query issued from a Blade view: the template, not the compiled file;
+- **per outbound HTTP call** made with the `Http` facade (Stripe, a partner API, another service) — the
+  method, the remote **host** (and its port when it is not 80/443), the response status, how long the
+  request waited, whether it failed, and the line of your code that made the call. Never the URL path,
+  the query string, headers or bodies: they carry tokens and personal data. Calls made with Guzzle or cURL
+  directly send no event and are not seen; the package's own delivery to the agent is never traced.
 
 **Never sent** — binding values, request parameters, headers, cookies, session, the user, exception
 messages. If you write literal values into raw SQL yourself (`DB::select("… where email = 'a@b.c'")`) they
@@ -107,6 +112,8 @@ Everything has a default that works. Nothing has to be set.
 | `SLOWPOKE_JOBS` | `true` | trace queued jobs too |
 | `SLOWPOKE_SCHEDULE` | `true` | trace scheduled commands (`app/Console/Kernel.php`) |
 | `SLOWPOKE_MAX_QUERIES` | `500` | queries described per request or job; the rest are counted |
+| `SLOWPOKE_HTTP_CLIENT` | `true` | record outbound calls made with the `Http` facade (Laravel 8 and later) |
+| `SLOWPOKE_MAX_HTTP_CALLS` | `200` | outbound calls described per request or job; the rest are counted |
 | `SLOWPOKE_MAX_SQL_LENGTH` | `10000` | longer statements are cut |
 | `SLOWPOKE_BACKTRACE_LIMIT` | `60` | stack frames inspected to find your line |
 | `SLOWPOKE_CODE_ROOT` | `base_path()` | file paths are sent relative to it |
